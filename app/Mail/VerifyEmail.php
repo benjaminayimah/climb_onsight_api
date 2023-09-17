@@ -44,7 +44,7 @@ class VerifyEmail extends Mailable
                 'name' => $this->data->name,
                 'token' => $this->data->token,
                 'frontend_url' => $this->data->frontend_url,
-                'hostname' => $this->data->hostname,
+                's3bucket' => $this->data->s3bucket,
             ],
         );
     }

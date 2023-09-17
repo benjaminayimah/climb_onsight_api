@@ -33,16 +33,19 @@ class SignUpController extends Controller
             $newuser->password = bcrypt($request['password']);
             $newuser->phone_number = $request['phone_number'];
             $newuser->save();
-            $this->sendMail($email, $name);
             if( !$token = JWTAuth::fromUser($newuser)) {
-                return response()->json([
-                    'message' => 'Invalid credentials'
-                ], 401);
+                return response()->json('Invalid credentials', 401);
             }
         } catch (\Throwable $th) {
+            return response()->json('Could not create user.', 500);
+        }
+        try {
+            $this->sendMail($email, $name);
+        } catch (\Throwable $th) {
             return response()->json([
-                'message' => 'Could not create user.'
-            ], 500);
+                'user' => $newuser,
+                'token' => $token
+            ], 200);
         }
         return response()->json([
             'user' => $newuser,
@@ -54,7 +57,7 @@ class SignUpController extends Controller
         $data->name = $name;
         $data->token = Crypt::encryptString($email);;
         $data->frontend_url = config('hosts.fe');
-        $data->hostname = config('hosts.be');
+        $data->s3bucket = config('hosts.s3');
         Mail::to($email)->send(new VerifyEmail($data));
     }
 

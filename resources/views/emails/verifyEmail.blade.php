@@ -18,12 +18,12 @@
                     <tbody>
                         <tr>
                             <td style="font-family:'Neue Montreal',sans-serif; font-size: 17px; font-weight: 400; line-height: 1.5">
+                                <p style="text-align:center; margin: 24px 0">
+                                    <a href="{{ $frontend_url ?? '' }}" target="_blank" style="padding: 8px">
+                                        <img aria-hidden="true" src="{{ $s3bucket ?? '' }}/app/cos-logo.png" height="12" alt="ClimbOnSight">
+                                    </a>
+                                </p>
                                 <div class="body-card" style="background-color: #fff; padding: 30px; border-radius: 16px">
-                                    <p>
-                                        <a href="{{ $frontend_url ?? '' }}" target="_blank">
-                                            <img aria-hidden="true" src="{{ $hostname ?? '' }}/storage/climb-onsight-logo.png" height="40" alt="ClimbOnSight">
-                                        </a>
-                                    </p>
                                     <div style="padding: 12px 0">
                                         <span style="padding-bottom: 6px; font-weight: 600; font-size: 25px; display:inline-block">
                                             You're welcome on board!
