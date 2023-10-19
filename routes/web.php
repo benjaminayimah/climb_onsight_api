@@ -17,6 +17,9 @@ Route::get('/', function () {
     return view('welcome');
 });
 
-Route::get('/verify-email', function () {
-    return view('emails.verifyEmail');
+// Route::get('/verify-email', function () {
+//     return view('emails.verifyEmail');
+// });
+Route::get('/guide-approved', function () {
+    return view('emails.guideApproved');
 });

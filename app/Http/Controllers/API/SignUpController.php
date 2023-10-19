@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\API;
 
 use App\Http\Controllers\Controller;
+use App\Mail\GuideApproved;
 use App\Mail\VerifyEmail;
 use App\Models\Email;
 use App\Models\User;
@@ -10,6 +11,7 @@ use Carbon\Carbon;
 use Illuminate\Contracts\Encryption\DecryptException;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Crypt;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Mail;
 use Tymon\JWTAuth\Facades\JWTAuth;
 
@@ -52,6 +54,37 @@ class SignUpController extends Controller
             'token' => $token
         ], 200);
     }
+    public function registerGuide(Request $request)
+    {
+        try {
+            $email = $request['email'];
+            $name = $request['name'];
+            $newGuide = new User();
+            $newGuide->name = $name;
+            $newGuide->company_email = $email;
+            $newGuide->password = bcrypt('dummy_password');
+            $newGuide->role = 'guide';
+            $newGuide->phone_number = $request['phone_number'];
+            $newGuide->guide_insurance = json_encode($request['guide_insurance']);
+            $newGuide->guide_certificate = json_encode($request['guide_certificate']);
+            $newGuide->guide_awards = json_encode($request['guide_awards']);
+            $newGuide->customer_reviews = $request['customer_reviews'];
+            $newGuide->guide_experience = json_encode($request['guide_experience']);
+            $newGuide->referees = json_encode($request['referees']);
+            $newGuide->save();
+
+        } catch (\Throwable $th) {
+            return response()->json('Could not create user.', 500);
+        }
+        // try {
+        //     $this->sendMail($email, $name);
+        // } catch (\Throwable $th) {
+        //     return response()->json([
+        //         'user' => $newuser
+        //     ], 200);
+        // }
+        return response()->json('success', 200);
+    }
     public function sendMail($email, $name){
         $data = new Email();
         $data->name = $name;
@@ -89,15 +122,77 @@ class SignUpController extends Controller
             'message' => 'Sorry we couldn\'t verify your email with the submitted credentials. Click the button below to try again. If the issue persists, please contact support.'
         ];
     }
+    public function AcceptGuide($id) {
+        if (! $user = JWTAuth::parseToken()->authenticate()) {
+            return response()->json(['status' => 'User not found!'], 404);
+        }
+        try {
+            $guide = User::findOrFail($id);
+            $guide->is_approved = true;
+            $guide->update();
+            //send email
+            $email = $guide->company_email;
+            $data = new Email();
+            $data->name = $guide->name;
+            $data->email = $email;
+            $data->token = Crypt::encryptString($email);
+            $data->frontend_url = config('hosts.fe');
+            $data->s3bucket = config('hosts.s3');
+            Mail::to($email)->send(new GuideApproved($data));
 
-    /**
-     * Show the form for editing the specified resource.
-     */
-    public function edit(string $id)
-    {
-        //
+        } catch (\Throwable $th) {
+            return response()->json([
+                'message' => 'An error has occured'
+            ], 500);
+        }
+        return response()->json('Guide has been accepted',200);
     }
+    public function DeclineGuide($id) {
+        if (! $user = JWTAuth::parseToken()->authenticate()) {
+            return response()->json(['status' => 'User not found!'], 404);
+        }
+        $guide = User::findOrFail($id);
+        $guide->delete();
+        return response()->json('Guide is declined',200);
+    }
+    public function CreateGuideLogin(Request $request) {
+        $this->validate($request, [
+            'email' => 'required|email|unique:users',
+            'password' => 'required|confirmed|min:8',
+        ]);
+        $company_email = $this->decryptToken($request['token']);
+        return $company_email ? $this->doResetPassword($company_email, $request['email'], $request['password']) : $this->tokenException();
 
+    }
+    public function decryptToken ($token) {
+        try {
+            $email = Crypt::decryptString($token);
+            if($email) {
+                $validated = DB::table('users')
+                ->where('company_email', $email)
+                ->where('email', null)
+                ->first();
+                if(isset($validated)) {
+                    return $email;
+                }else {
+                    return false;
+                }
+            }
+        } catch (DecryptException $e) {
+            return false;
+        }
+    }
+    public function tokenException() {
+        return response()->json('Your token is invalid. Please contact support@climbonsight.ca for help.', 401);
+    }
+    private function doResetPassword($company_email, $email, $password) {
+        $userData = User::whereCompanyEmail($company_email)->first();
+        $userData->update([
+            'email' => $email,
+            'password' => bcrypt($password)
+        ]);
+        return response()->json($email, 200);
+    }
     /**
      * Update the specified resource in storage.
      */

@@ -20,31 +20,32 @@
                             <td style="font-family:'Neue Montreal',sans-serif; font-size: 17px; font-weight: 400; line-height: 1.5">
                                 <p style="text-align:center; margin: 24px 0">
                                     <a href="{{ $frontend_url ?? '' }}" target="_blank" style="padding: 8px">
-                                        <img aria-hidden="true" src="{{ $s3bucket }}/app/cos-logo.png" height="12" alt="ClimbOnSight">
+                                        <img aria-hidden="true" src="{{ $s3bucket ?? '' }}/app/cos-logo.png" height="12" alt="ClimbOnSight">
                                     </a>
                                 </p>
                                 <div class="body-card" style="background-color: #fff; padding: 30px; border-radius: 16px">
+                                    
                                     <div style="padding: 12px 0">
-                                        <span style="padding-bottom: 6px; font-weight: 600; font-size: 25px; display:inline-block">
-                                            You're welcome on board!
+                                        <span style="color: #000; padding-bottom: 6px; font-weight: 600; font-size: 25px; display:inline-block">
+                                            Guide Request Approved
                                         </span>
                                     </div>
                                     <div style="color: rgb(34, 34, 34);">
                                         <p>
-                                            <strong>Hello {{ $name }},</strong>
+                                            <strong>Hello, {{ $name }}</strong>
                                         </p>
                                         <p>
-                                            We're excited to have you on board our platform. In order to get started, please confirm your email by clicking on the button below.
+                                            Your request as a ClimbOnsight Guide has been approved.
                                         </p>
                                         <p>
-                                            <a href="{{ $frontend_url ?? '' }}/verify-account-email/{{ $token ?? '' }}" target="_blank" class="btn" style="background-color: #000; border-radius: 18px; text-align: center; color:#fff; display:block; padding: 14px 24px; text-decoration: none; margin: 32px 24px">Verify Email Address</a>
+                                            Please click on the button bellow to create your login details.
                                         </p>
-                                        <p style="color: #7A7D84">
-                                            If you did not create an account, no further action is required.
+                                        <p>
+                                            <a href="{{ $frontend_url.'/'.'guide-signup/'.$token.'?email='.$email }}" target="_blank" class="btn" style="background-color: #000; border-radius: 18px; text-align: center; color:#fff; display:block; padding: 14px 24px; text-decoration: none; margin: 32px 24px">Create login</a>
                                         </p>
                                         <p style="margin-top: 32px">
-                                            Best regards!<br/>
-                                            ClimbOnSight Team.
+                                            Thank you!<br/>
+                                            Modamu Team.
                                         </p>
                                     </div>
                                 </div>

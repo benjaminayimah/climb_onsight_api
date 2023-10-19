@@ -14,7 +14,7 @@ return new class extends Migration
         Schema::create('users', function (Blueprint $table) {
             $table->id();
             $table->string('name');
-            $table->string('email')->unique();
+            $table->string('email')->unique()->nullable();
             $table->boolean('email_verified')->default(false);
             $table->timestamp('email_verified_at')->nullable();
             $table->string('password');
@@ -31,14 +31,16 @@ return new class extends Migration
             $table->json('new_skills')->nullable();
 
             // Add fields specific to Guides
-            $table->text('customer_reviews')->nullable();
-            $table->string('referee_name')->nullable();
-            $table->string('referee_email')->nullable();
-            $table->string('referee_phone_number')->nullable();
-            $table->string('guide_insurance')->nullable();
-            $table->string('guide_certificate')->nullable();
+            $table->string('company_email')->nullable();
+            $table->json('guide_insurance')->nullable();
+            $table->json('guide_certificate')->nullable();
+            $table->string('customer_reviews')->nullable();
+            $table->json('guide_awards')->nullable();
+            $table->json('guide_experience')->nullable();
+            $table->json('referees')->nullable();
             $table->json('gallery')->nullable();
             $table->boolean('is_approved')->default(false);
+            
 
             $table->rememberToken();
             $table->timestamps();

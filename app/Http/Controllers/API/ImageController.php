@@ -13,13 +13,13 @@ class ImageController extends Controller
 {
     public function __construct()
     {
-        $this->middleware('auth:api');
-        if (!JWTAuth::parseToken()->authenticate()) {
-            return response()->json(['status' => 'User not found!'], 404);
-        }
+        $this->middleware('auth:api', ['except' => ['tempPDFUpload', 'deleteUploadedFIle']]);
     }
     public function tempUpload(Request $request)
     {
+        if (!JWTAuth::parseToken()->authenticate()) {
+            return response()->json(['status' => 'User not found!'], 404);
+        }
         $user = auth()->user();
         $path = $request->file('file')->store(
             'temp_'.$user->id,
@@ -27,27 +27,45 @@ class ImageController extends Controller
         );
         return response()->json($path, 200);
     }
-    // public function setTempUpdate(Request $request) {
-    //     if (! $user = JWTAuth::parseToken()->authenticate()) {
-    //         return response()->json(['status' => 'User not found!'], 404);
-    //     }
-    //     $id = $user->id;
-    //     $image = $request->image;
-    //     if (!Storage::directories('public/'.$id.'/temp')) {
-    //         Storage::makeDirectory('public/'.$id.'/temp');
-    //     }
-    //     if (!Storage::disk('public')->exists($id.'/temp'.'/'.$image)) {
-    //         Storage::disk('public')->copy($id.'/'.$image, $id.'/temp'.'/'.$image);
-    //     };
-    //     return response()->json([
-    //         'status' => 'success',
-    //         'image' => $image
-    //     ], 200);
-    // }
+    public function tempPDFUpload(Request $request) {
+        $request->validate([
+            'file' => 'mimes:pdf,doc,docx,jpeg,png,jpg|max:2048',
+        ]);
+        $path = $request->file('file')->store(
+            'docs',
+            's3'
+        );
+        return response()->json($path, 200);
+    }
+    public function setTempUpdate(Request $request) {
+        if (!JWTAuth::parseToken()->authenticate()) {
+            return response()->json(['status' => 'User not found!'], 404);
+        }
+        $id = auth()->user()->id;
+        $image = $request->image;
+        if($image) {
+            if (Storage::disk('s3')->exists($image)) {
+                Storage::disk('s3')->copy($image, 'temp_'.$id.'/'.$image);
+            };
+        }
+        return response()->json('temp_'.$id.'/'.$image, 200);
+    }
     public function deleteTempImage() {
         //delete from folder
         $user = auth()->user();
         Storage::disk('s3')->deleteDirectory('temp_'.$user->id);
         return response()->json('success', 200);
+    }
+    public function deleteUploadedFIle(Request $request) {
+        if (Storage::disk('s3')->exists($request->file)) {
+            Storage::disk('s3')->delete($request->file);
+            return response()->json('File deleted', 200);
+        } else {
+            return response()->json('File not found.', 200);
+        }
+    }
+    public function destroy(string $id)
+    {
+        //
     }
 }

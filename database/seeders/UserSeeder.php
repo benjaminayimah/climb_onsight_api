@@ -13,6 +13,7 @@ class UserSeeder extends Seeder
      */
     public function run(): void
     {
+        // Create a Super Admin
         User::factory()->create([
             'name' => 'Super Admin',
             'email' => 'superadmin@example.com',
@@ -20,9 +21,26 @@ class UserSeeder extends Seeder
             'email_verified' => true,
             'role' => 'super_admin',
             'phone_number' => '111-222-3334'
-
-            
-
+        ]);
+        // Create a Guide
+        User::factory()->create([
+            'name' => 'Guide User',
+            'email' => 'guide@example.com',
+            'password' => bcrypt('password12@!'),
+            'email_verified' => true,
+            'company_email' => 'guide_email@example.com',
+            'role' => 'guide',
+            'phone_number' => '222-333-4445',
+            'is_approved' => true
+        ]);
+         // Create a Climber
+         User::factory()->create([
+            'name' => 'Climber User',
+            'email' => 'climber@example.com',
+            'password' => bcrypt('password12@!'),
+            'email_verified' => true,
+            'role' => 'climber',
+            'phone_number' => '222-333-4445'
         ]);
     }
 }
