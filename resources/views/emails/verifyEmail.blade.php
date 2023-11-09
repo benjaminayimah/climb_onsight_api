@@ -44,7 +44,7 @@
                                         </p>
                                         <p style="margin-top: 32px">
                                             Best regards!<br/>
-                                            ClimbOnSight Team.
+                                            Climb OnSight Team.
                                         </p>
                                     </div>
                                 </div>

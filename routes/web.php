@@ -20,6 +20,6 @@ Route::get('/', function () {
 // Route::get('/verify-email', function () {
 //     return view('emails.verifyEmail');
 // });
-Route::get('/guide-approved', function () {
-    return view('emails.guideApproved');
+Route::get('/bookinng-request', function () {
+    return view('emails.bookingRequet');
 });

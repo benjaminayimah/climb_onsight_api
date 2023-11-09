@@ -45,7 +45,7 @@
                                         </p>
                                         <p style="margin-top: 32px">
                                             Thank you!<br/>
-                                            Modamu Team.
+                                            Climb Onsight Team.
                                         </p>
                                     </div>
                                 </div>

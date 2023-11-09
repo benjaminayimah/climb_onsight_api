@@ -27,21 +27,21 @@
                                     
                                     <div style="padding: 12px 0">
                                         <span style="color: #000; padding-bottom: 6px; font-weight: 600; font-size: 25px; display:inline-block">
-                                            Guide Request Approved
+                                            You have a new booking!
                                         </span>
                                     </div>
                                     <div style="color: rgb(34, 34, 34);">
                                         <p>
-                                            <strong>Hello, {{ $name }}</strong>
+                                            <strong>Hello,</strong>
                                         </p>
                                         <p>
-                                            Your request as a ClimbOnsight Guide has been approved.
+                                            A new booking is awaiting your approval.
                                         </p>
                                         <p>
-                                            Please click on the button bellow to create your login details.
+                                            Log in to your account to approve the it.
                                         </p>
                                         <p>
-                                            <a href="{{ $frontend_url.'/'.'guide-signup/'.$token.'?email='.$email }}" target="_blank" class="btn" style="background-color: #000; border-radius: 18px; text-align: center; color:#fff; display:block; padding: 14px 24px; text-decoration: none; margin: 32px 24px">Create login</a>
+                                            <a href="{{ $frontend_url }}" target="_blank" class="btn" style="background-color: #000; border-radius: 18px; text-align: center; color:#fff; display:block; padding: 14px 24px; text-decoration: none; margin: 32px 24px">Approve booking</a>
                                         </p>
                                         <p style="margin-top: 32px">
                                             Thank you!<br/>

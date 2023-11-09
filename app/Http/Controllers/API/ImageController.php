@@ -37,19 +37,19 @@ class ImageController extends Controller
         );
         return response()->json($path, 200);
     }
-    public function setTempUpdate(Request $request) {
-        if (!JWTAuth::parseToken()->authenticate()) {
-            return response()->json(['status' => 'User not found!'], 404);
-        }
-        $id = auth()->user()->id;
-        $image = $request->image;
-        if($image) {
-            if (Storage::disk('s3')->exists($image)) {
-                Storage::disk('s3')->copy($image, 'temp_'.$id.'/'.$image);
-            };
-        }
-        return response()->json('temp_'.$id.'/'.$image, 200);
-    }
+    // public function setTempUpdate(Request $request) {
+    //     if (!JWTAuth::parseToken()->authenticate()) {
+    //         return response()->json(['status' => 'User not found!'], 404);
+    //     }
+    //     $id = auth()->user()->id;
+    //     $image = $request->image;
+    //     if($image) {
+    //         if (Storage::disk('s3')->exists($image)) {
+    //             Storage::disk('s3')->copy($image, 'temp_'.$id.'/'.$image);
+    //         };
+    //     }
+    //     return response()->json('temp_'.$id.'/'.$image, 200);
+    // }
     public function deleteTempImage() {
         //delete from folder
         $user = auth()->user();

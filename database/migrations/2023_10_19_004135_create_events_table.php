@@ -15,9 +15,9 @@ return new class extends Migration
             $table->id();
             $table->unsignedBigInteger('user_id');
             $table->string('event_name');
+            $table->date('start_date');
+            $table->date('end_date');
             $table->time('start_time');
-            $table->time('end_time');
-            $table->date('date');
             $table->decimal('price', 10, 2);
             $table->json('gallery');
             $table->string('latitude')->nullable();
@@ -25,9 +25,13 @@ return new class extends Migration
             $table->string('address');
             $table->string('category')->nullable();
             $table->integer('attendance_limit');
+            $table->unsignedInteger('limit_count')->default(0);
             $table->json('gears')->nullable();
             $table->string('itinerary')->nullable();
             $table->text('event_description')->nullable();
+            $table->json('faqs')->nullable();
+            $table->string('repeat_at')->nullable();
+
             $table->timestamps();
         });
     }

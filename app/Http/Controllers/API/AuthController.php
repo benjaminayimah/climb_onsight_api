@@ -97,8 +97,10 @@ class AuthController extends Controller
                     $this->deleteTemp($id);
                 }else {
                     $updateUser->profile_picture = 'images/'.$exact_new_image_path;
-                    Storage::disk('s3')->move($newImage, 'images/'.$exact_new_image_path);
-                    $this->deleteTemp($id);
+                    if (Storage::disk('s3')->exists($newImage)) {
+                        Storage::disk('s3')->move($newImage, 'images/'.$exact_new_image_path);
+                        $this->deleteTemp($id);
+                    };
                     if($oldImage) {
                         $this->deleteOldCopy($oldImage);
                     }
@@ -110,7 +112,10 @@ class AuthController extends Controller
                 }
             }
             $updateUser->update();
-            return response()->json($updateUser, 200);
+            return response()->json([
+                'data' => $updateUser,
+                'message' => 'Your profile is updated'
+            ], 200);
             
         } catch (\Throwable $th) {
             return response()->json([

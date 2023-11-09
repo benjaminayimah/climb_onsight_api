@@ -27,24 +27,26 @@
                                     
                                     <div style="padding: 12px 0">
                                         <span style="color: #000; padding-bottom: 6px; font-weight: 600; font-size: 25px; display:inline-block">
-                                            Guide Request Approved
+                                            Your booking has been accepted
                                         </span>
                                     </div>
                                     <div style="color: rgb(34, 34, 34);">
                                         <p>
-                                            <strong>Hello, {{ $name }}</strong>
+                                            <strong>Hello,</strong>
                                         </p>
                                         <p>
-                                            Your request as a ClimbOnsight Guide has been approved.
+                                            Your booking has been accepted by the trip guide.
                                         </p>
                                         <p>
-                                            Please click on the button bellow to create your login details.
+                                           Please log in to your account to complete payment for this trip.
                                         </p>
                                         <p>
-                                            <a href="{{ $frontend_url.'/'.'guide-signup/'.$token.'?email='.$email }}" target="_blank" class="btn" style="background-color: #000; border-radius: 18px; text-align: center; color:#fff; display:block; padding: 14px 24px; text-decoration: none; margin: 32px 24px">Create login</a>
+                                            Thank you for choosing us, and we look forward to welcoming you!
+                                        </p>
+                                        <p>
+                                            <a href="{{ $frontend_url }}" target="_blank" class="btn" style="background-color: #000; border-radius: 18px; text-align: center; color:#fff; display:block; padding: 14px 24px; text-decoration: none; margin: 32px 24px">Climb Onsight</a>
                                         </p>
                                         <p style="margin-top: 32px">
-                                            Thank you!<br/>
                                             Climb Onsight Team.
                                         </p>
                                     </div>

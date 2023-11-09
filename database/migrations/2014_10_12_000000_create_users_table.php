@@ -34,6 +34,7 @@ return new class extends Migration
             $table->string('company_email')->nullable();
             $table->json('guide_insurance')->nullable();
             $table->json('guide_certificate')->nullable();
+            $table->json('guide_terms')->nullable();
             $table->string('customer_reviews')->nullable();
             $table->json('guide_awards')->nullable();
             $table->json('guide_experience')->nullable();

@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\API\AuthController;
+use App\Http\Controllers\API\BookingController;
 use App\Http\Controllers\API\EventController;
 use App\Http\Controllers\API\ForgotPasswordController;
 use App\Http\Controllers\API\ImageController;
@@ -34,6 +35,22 @@ Route::post('/reset-password', [ForgotPasswordController::class, 'ResetPassword'
 Route::put('/accept-guide/{id}', [SignUpController::class, 'AcceptGuide']);
 Route::put('/decline-guide/{id}', [SignUpController::class, 'DeclineGuide']);
 Route::post('/create-guide-login', [SignUpController::class, 'CreateGuideLogin']);
+Route::get('/get-this-guide/{id}', [EventController::class, 'GetThisGuide']);
+Route::post('/search-events/{query}', [EventController::class, 'SearchEvents']);
+Route::post('/get-nearby-events', [EventController::class, 'GetNearByEvents']);
+Route::post('/booking-webhooks', [BookingController::class, 'WebHooks']);
+Route::post('/complete-booking', [BookingController::class, 'CompleteBooking']);
+Route::post('/cancel-booking', [BookingController::class, 'CancelBooking']);
+
+
+
+
+
+
+
+
+// 
+
 
 
 
@@ -44,10 +61,17 @@ Route::middleware(['auth:api'])->group(function () {
         'auth-user' => AuthController::class,
         'event' => EventController::class,
     ]);
-    Route::delete('logout', [AuthController::class, 'destroy']);
+    Route::post('/prebook-event/{id}', [BookingController::class, 'PreBookEvent']);
+    Route::post('/accept-booking/{id}', [BookingController::class, 'AcceptBooking']);
+    Route::post('/decline-booking/{id}', [BookingController::class, 'DeclineBooking']);
+    Route::post('/attempt-payment/{id}', [BookingController::class, 'AttemptPayment']);
 
-    Route::post('temp-image-upload', [ImageController::class, 'tempUpload']);
-    Route::delete('delete-temp-image', [ImageController::class, 'deleteTempImage']);
+    
+    Route::delete('logout', [AuthController::class, 'destroy']);
+    
+    Route::post('/temp-image-upload', [ImageController::class, 'tempUpload']);
+    Route::delete('/delete-temp-image', [ImageController::class, 'deleteTempImage']);
+
 
 
     

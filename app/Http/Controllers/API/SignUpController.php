@@ -67,6 +67,7 @@ class SignUpController extends Controller
             $newGuide->phone_number = $request['phone_number'];
             $newGuide->guide_insurance = json_encode($request['guide_insurance']);
             $newGuide->guide_certificate = json_encode($request['guide_certificate']);
+            $newGuide->guide_terms = json_encode($request['guide_terms']);
             $newGuide->guide_awards = json_encode($request['guide_awards']);
             $newGuide->customer_reviews = $request['customer_reviews'];
             $newGuide->guide_experience = json_encode($request['guide_experience']);
