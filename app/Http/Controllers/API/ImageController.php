@@ -64,6 +64,18 @@ class ImageController extends Controller
             return response()->json('File not found.', 200);
         }
     }
+    public function deleteGalleryImage(Request $request) {
+        $id = auth()->user()->id;
+        $path = $request->file;
+        $split = explode("/", $path);
+        $image = end($split);
+        if (Storage::disk('s3')->exists($path)) {
+            Storage::disk('s3')->copy($path, 'temp_'.$id.'/'.$image);
+            return response()->json('File deleted', 200);
+        } else {
+            return response()->json('File not found.', 200);
+        }
+    }
     public function destroy(string $id)
     {
         //

@@ -31,6 +31,8 @@ return new class extends Migration
             $table->text('event_description')->nullable();
             $table->json('faqs')->nullable();
             $table->string('repeat_at')->nullable();
+            $table->string('color_class')->nullable();
+
 
             $table->timestamps();
         });

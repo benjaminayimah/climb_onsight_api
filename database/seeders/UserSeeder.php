@@ -31,7 +31,9 @@ class UserSeeder extends Seeder
             'company_email' => 'guide_email@example.com',
             'role' => 'guide',
             'phone_number' => '222-333-4445',
-            'is_approved' => true
+            'is_approved' => true,
+            'country' => 'US',
+            'guide_terms' => '{"key": "guide_terms", "url": "docs/XuFnOFjaoYfn1e1gdwYkgdqtlgI7KAdJZ8kZ6MdX.pdf", "name": "sample-terms-conditions-agreement.pdf"}'
         ]);
          // Create a Climber
          User::factory()->create([

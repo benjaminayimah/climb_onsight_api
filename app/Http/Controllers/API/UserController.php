@@ -33,27 +33,30 @@ class UserController extends Controller
         $climbers = [];
         $events = [];
         $bookings = [];
+        $admins = [];
+        $account = '';
+        $balance = [];
+        $payouts = [];
         if ($user->role === 'super_admin') {
-            $notifications = DB::table('users')
-                ->where('role', 'guide')
+            $notifications = User::where('role', 'guide')
                 ->where('is_approved', false)
                 ->get();
-            $guides = DB::table('users')
-                ->where('role', 'guide')
-                ->get();
-            $climbers = DB::table('users')
-                ->where('role', 'climber')
-                ->get();
-            $events = DB::table('events')
-                // ->where('date', '>=', Carbon::now()->toDateString())
-                ->get();
+            $guides = User::where('role', 'guide')->get();
+            $climbers = User::where('role', 'climber')->get();
+            $events = DB::table('events')->get();
+            $bookings = Booking::all();
+            $admins = User::where('role', 'admin')->get();
+
         }elseif ($user->role === 'admin') {
             # code...
         }elseif ($user->role === 'guide') {
-            // $bookings = Booking::where('user_id', $user->id)
-            //     ->where('guide_id', $user->id)
-            //     ->orderBy('id', 'DESC')
-            //     ->get();
+            $bookings = Booking::where('guide_id', $user->id)
+                ->where('guide_delete', false)
+                ->orderBy('id', 'DESC')
+                ->get();
+            foreach ($bookings as $key) {
+                $climbers[] = User::where('id', $key->user_id)->get();
+            }
             $notifications = DB::table('bookings')
                 ->join('users', 'bookings.user_id', '=', 'users.id')
                 ->where('bookings.guide_id', $user->id)
@@ -63,11 +66,31 @@ class UserController extends Controller
                 ->orderBy('id', 'DESC')
                 ->get();
             $events = DB::table('events')
-            ->join('users', 'events.user_id', '=', 'users.id')
-            ->where('events.user_id', $user->id)
-            ->select('users.name', 'events.*')
-            ->get();
+                ->join('users', 'events.user_id', '=', 'users.id')
+                ->where('events.user_id', $user->id)
+                ->select('users.name', 'events.*')
+                ->get();
+            if($user->charges_enabled && $user->details_submitted && $user->payouts_enabled) {
+                $stripe_id = $user->stripe_account_id;
+                $stripe = new \Stripe\StripeClient(config('stripe.sk'));
+                $account = $stripe->accounts->retrieve($stripe_id, []);
+                \Stripe\Stripe::setApiKey(config('stripe.sk'));
+                // Retrieve balance details for the connected account
+                $balance = \Stripe\Balance::retrieve(
+                    ['stripe_account' => $stripe_id]
+                )->instant_available;
+                // Retrieve all payouts for the connected account
+                $payouts = $stripe->transfers->all([
+                    'destination' => $stripe_id,
+                    'limit' => 10, // You can adjust the limit as needed
+                ]);
+            }
         }elseif ($user->role === 'climber') {
+            $events = DB::table('events')
+                ->where('events.start_date', '>=', Carbon::now()->toDateString())
+                ->orderByDesc('id')
+                ->take(10)
+                ->get();
             $notifications = DB::table('bookings')
                 ->join('users', 'bookings.user_id', '=', 'users.id')
                 ->where('bookings.user_id', $user->id)
@@ -81,12 +104,11 @@ class UserController extends Controller
                 ->join('events', 'bookings.event_id', '=', 'events.id')
                 ->where('bookings.user_id', $user->id)
                 ->where('climber_delete', false)
-                ->select('events.*', 'bookings.receipt_no', 'bookings.event_id', 'bookings.paid', 'bookings.accepted', 'bookings.guide_delete')
+                ->select('events.*', 'bookings.receipt_no', 'bookings.guide_id', 'bookings.event_id', 'bookings.paid', 'bookings.accepted', 'bookings.guide_delete')
                 ->get();
-
-            $events = DB::table('events')
-                // ->where('events.start_date', '>=', Carbon::now()->toDateString())
-                ->get();
+                foreach ($bookings as $key) {
+                    $guides[] = User::where('id', $key->guide_id)->get();
+                }
         }
         return response()->json([
             'user' => $user,
@@ -94,7 +116,11 @@ class UserController extends Controller
             'guides' => $guides,
             'climbers' => $climbers,
             'events' => $events,
-            'bookings' => $bookings
+            'bookings' => $bookings,
+            'admins' => $admins,
+            'account' => $account,
+            'balance' => $balance,
+            'payouts' => $payouts,
         ], 200);
     }
     public function store(Request $request)

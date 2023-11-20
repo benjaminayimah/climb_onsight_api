@@ -72,13 +72,11 @@ class AuthController extends Controller
     {        
         $this->validate($request, [
             'email' => 'required|email',
-            'name' => 'required',
-            'phone_number' => 'required',
+            'name' => 'required'
         ]);
         $newImage = $request['tempImage'];
         $updateUser = User::findOrFail($id);
         $oldImage = $updateUser->profile_picture;
-        
         if($request['email'] != $updateUser->email) {
             $this->validate($request, [
                 'email' => 'unique:users'
@@ -102,18 +100,18 @@ class AuthController extends Controller
                         $this->deleteTemp($id);
                     };
                     if($oldImage) {
-                        $this->deleteOldCopy($oldImage);
+                        $this->deleteImage($oldImage);
                     }
                 }
             } else {
                 $updateUser->profile_picture = null;
                 if($oldImage) {
-                    $this->deleteOldCopy($oldImage);
+                    $this->deleteImage($oldImage);
                 }
             }
             $updateUser->update();
             return response()->json([
-                'data' => $updateUser,
+                'user' => $updateUser,
                 'message' => 'Your profile is updated'
             ], 200);
             
@@ -126,7 +124,7 @@ class AuthController extends Controller
     public function deleteTemp($id) {
         Storage::disk('s3')->deleteDirectory('temp_'.$id);
     }
-    public function deleteOldCopy($image) {
+    public function deleteImage($image) {
         if (Storage::disk('s3')->exists($image)) {
             Storage::disk('s3')->delete($image);
         };
@@ -139,5 +137,24 @@ class AuthController extends Controller
         }
         auth()->logout(true);
         return response()->json(['message' => 'logged out!'], 200);
+    }
+
+    public function DeleteUser($id) {
+        try {
+            $user = User::findOrFail($id);
+            $image = $user->profile_picture;
+            if($image) {
+                $this->deleteImage($image);
+            }
+            $user->delete();
+            return response()->json([
+                'id' => $id,
+                'message' => 'User is deleted'
+            ], 200);
+        } catch (\Throwable $th) {
+            return response()->json([
+                'message' => 'An error has occured'
+            ], 500);
+        }
     }
 }

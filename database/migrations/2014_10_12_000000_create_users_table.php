@@ -18,7 +18,8 @@ return new class extends Migration
             $table->boolean('email_verified')->default(false);
             $table->timestamp('email_verified_at')->nullable();
             $table->string('password');
-            $table->string('phone_number');
+            $table->string('phone_number')->nullable();
+            $table->string('country')->nullable();
             $table->enum('role', ['super_admin', 'admin', 'guide', 'climber'])->default('climber');
             $table->string('profile_picture')->nullable();
 
@@ -41,7 +42,15 @@ return new class extends Migration
             $table->json('referees')->nullable();
             $table->json('gallery')->nullable();
             $table->boolean('is_approved')->default(false);
-            
+
+            // stripe account
+            $table->string('stripe_account_id')->nullable();
+            $table->boolean('charges_enabled')->default(false);
+            $table->boolean('payouts_enabled')->default(false);
+            $table->boolean('details_submitted')->default(false);
+
+
+            $table->json('permissions')->nullable(); 
 
             $table->rememberToken();
             $table->timestamps();

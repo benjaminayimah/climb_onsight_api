@@ -27,13 +27,13 @@ class SignUpController extends Controller
             'password' => 'required|min:8',
         ]);
         try {
-            $email = $request['email'];
-            $name = $request['name'];
+            $email = $request->email;
+            $name = $request->name;
             $newuser = new User();
             $newuser->name = $name;
             $newuser->email = $email;
-            $newuser->password = bcrypt($request['password']);
-            $newuser->phone_number = $request['phone_number'];
+            $newuser->password = bcrypt($request->password);
+            $newuser->phone_number = $request->phone_number;
             $newuser->save();
             if( !$token = JWTAuth::fromUser($newuser)) {
                 return response()->json('Invalid credentials', 401);
@@ -63,6 +63,7 @@ class SignUpController extends Controller
             $newGuide->name = $name;
             $newGuide->company_email = $email;
             $newGuide->password = bcrypt('dummy_password');
+            $newGuide->country = $request->country;
             $newGuide->role = 'guide';
             $newGuide->phone_number = $request['phone_number'];
             $newGuide->guide_insurance = json_encode($request['guide_insurance']);
@@ -131,6 +132,7 @@ class SignUpController extends Controller
             $guide = User::findOrFail($id);
             $guide->is_approved = true;
             $guide->update();
+
             //send email
             $email = $guide->company_email;
             $data = new Email();
@@ -141,12 +143,15 @@ class SignUpController extends Controller
             $data->s3bucket = config('hosts.s3');
             Mail::to($email)->send(new GuideApproved($data));
 
+            return response()->json([
+                'message' => 'Guide has been accepted',
+            ], 200);
+
         } catch (\Throwable $th) {
             return response()->json([
                 'message' => 'An error has occured'
             ], 500);
         }
-        return response()->json('Guide has been accepted',200);
     }
     public function DeclineGuide($id) {
         if (! $user = JWTAuth::parseToken()->authenticate()) {
