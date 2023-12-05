@@ -38,13 +38,13 @@
                                             Your booking has been accepted by the trip guide.
                                         </p>
                                         <p>
-                                           Please log in to your account to complete payment for this trip.
+                                            Log in to your account to complete payment for this trip. We will hold your spot for <strong>72 hours, </strong> after which your booking would be canceled.
                                         </p>
                                         <p>
                                             Thank you for choosing us, and we look forward to welcoming you!
                                         </p>
                                         <p>
-                                            <a href="{{ $frontend_url }}" target="_blank" class="btn" style="background-color: #000; border-radius: 18px; text-align: center; color:#fff; display:block; padding: 14px 24px; text-decoration: none; margin: 32px 24px">Climb Onsight</a>
+                                            <a href="{{ $frontend_url }}" target="_blank" class="btn" style="background-color: #000; border-radius: 18px; text-align: center; color:#fff; display:block; padding: 14px 24px; text-decoration: none; margin: 32px 24px">Log in now</a>
                                         </p>
                                         <p style="margin-top: 32px">
                                             Climb Onsight Team.

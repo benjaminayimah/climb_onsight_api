@@ -46,7 +46,7 @@ class StripeController extends Controller
                 'limit' => 10, // You can adjust the limit as needed
             ]);
 
-           
+            
             return response()->json([
                 'account' => $account,
                 'balance' => $balance->instant_available,

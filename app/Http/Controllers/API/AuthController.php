@@ -143,14 +143,24 @@ class AuthController extends Controller
         try {
             $user = User::findOrFail($id);
             $image = $user->profile_picture;
-            if($image) {
+            if($user->profile_picture) {
                 $this->deleteImage($image);
             }
+            if (isset($user->guide_terms)) {
+                $this->deleteImage(json_decode($user->guide_terms)->url);
+            }
+            if(isset($user->guide_certificate)) {
+                foreach (json_decode($user->guide_certificate) as $key) {
+                    $this->deleteImage($key->url);
+                }
+            }
+            if(isset($user->guide_insurance)) {
+                foreach (json_decode($user->guide_insurance) as $key) {
+                    $this->deleteImage($key->url);
+                }
+            }
             $user->delete();
-            return response()->json([
-                'id' => $id,
-                'message' => 'User is deleted'
-            ], 200);
+            return response()->json($id, 200);
         } catch (\Throwable $th) {
             return response()->json([
                 'message' => 'An error has occured'

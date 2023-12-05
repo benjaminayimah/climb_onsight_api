@@ -32,8 +32,12 @@ class UserSeeder extends Seeder
             'role' => 'guide',
             'phone_number' => '222-333-4445',
             'is_approved' => true,
-            'country' => 'US',
-            'guide_terms' => '{"key": "guide_terms", "url": "docs/XuFnOFjaoYfn1e1gdwYkgdqtlgI7KAdJZ8kZ6MdX.pdf", "name": "sample-terms-conditions-agreement.pdf"}'
+            'country' => 'CA',
+            'guide_terms' => '{"key": "guide_terms", "url": "docs/XuFnOFjaoYfn1e1gdwYkgdqtlgI7KAdJZ8kZ6MdX.pdf", "name": "sample-terms-conditions-agreement.pdf"}',
+            'stripe_account_id' => 'acct_1OCwBoPv3lldH5qB',
+            'charges_enabled' => true,
+            'payouts_enabled' => true,
+            'details_submitted' => true
         ]);
          // Create a Climber
          User::factory()->create([
@@ -42,7 +46,11 @@ class UserSeeder extends Seeder
             'password' => bcrypt('password12@!'),
             'email_verified' => true,
             'role' => 'climber',
-            'phone_number' => '222-333-4445'
+            'phone_number' => '222-333-4445',
+            'gender' => 'male',
+            'dob' => '1990-06-10'
+
+
         ]);
     }
 }

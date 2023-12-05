@@ -17,23 +17,25 @@ return new class extends Migration
             $table->string('event_name');
             $table->date('start_date');
             $table->date('end_date');
-            $table->time('start_time');
-            $table->decimal('price', 10, 2);
+            $table->json('price');
             $table->json('gallery');
+            $table->enum('event_type', ['public', 'private'])->default('public'); // new
+            $table->json('event_terms'); //new
+            $table->string('event_duration'); //new
             $table->string('latitude')->nullable();
             $table->string('longitude')->nullable();
             $table->string('address');
             $table->string('category')->nullable();
             $table->integer('attendance_limit');
             $table->unsignedInteger('limit_count')->default(0);
-            $table->json('gears')->nullable();
+            $table->json('climber_gears')->nullable(); // new
+            $table->json('guide_gears')->nullable(); // new
+            $table->json('experience_required')->nullable(); // new
             $table->string('itinerary')->nullable();
             $table->text('event_description')->nullable();
             $table->json('faqs')->nullable();
-            $table->string('repeat_at')->nullable();
+            $table->enum('repeat_at', ['daily', 'weekly', 'weekdays', 'weekends', 'monthly'])->nullable()->default('daily'); // new
             $table->string('color_class')->nullable();
-
-
             $table->timestamps();
         });
     }

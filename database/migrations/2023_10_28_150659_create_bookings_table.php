@@ -17,12 +17,18 @@ return new class extends Migration
             $table->unsignedBigInteger('event_id');
             $table->unsignedBigInteger('guide_id');
             $table->string('event_name');
+            $table->string('event_type');
             $table->string('total_price');
             $table->string('payment_session_id')->nullable();
             $table->string('receipt_no');
             $table->boolean('paid')->default(false);
             $table->boolean('accepted')->default(false);
-            $table->boolean('relist')->default(false);
+            $table->boolean('relist')->default(true);
+            $table->date('date_selected')->nullable(); // new
+            $table->unsignedInteger('quantity')->default(1); // new
+            $table->json('attendees')->nullable(); // new
+            $table->json('waiver')->nullable(); // new
+            $table->boolean('close_booking')->default(false); //new
             $table->boolean('climber_delete')->default(false);
             $table->boolean('guide_delete')->default(false);
             $table->boolean('admin_delete')->default(false);

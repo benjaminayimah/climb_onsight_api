@@ -78,16 +78,9 @@ class SignUpController extends Controller
         } catch (\Throwable $th) {
             return response()->json('Could not create user.', 500);
         }
-        // try {
-        //     $this->sendMail($email, $name);
-        // } catch (\Throwable $th) {
-        //     return response()->json([
-        //         'user' => $newuser
-        //     ], 200);
-        // }
         return response()->json('success', 200);
     }
-    public function sendMail($email, $name){
+    private function sendMail($email, $name){
         $data = new Email();
         $data->name = $name;
         $data->token = Crypt::encryptString($email);;
@@ -141,7 +134,7 @@ class SignUpController extends Controller
             $data->token = Crypt::encryptString($email);
             $data->frontend_url = config('hosts.fe');
             $data->s3bucket = config('hosts.s3');
-            Mail::to($email)->send(new GuideApproved($data));
+            // Mail::to($email)->send(new GuideApproved($data));
 
             return response()->json([
                 'message' => 'Guide has been accepted',

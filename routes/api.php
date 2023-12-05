@@ -70,6 +70,7 @@ Route::middleware(['auth:api'])->group(function () {
     Route::post('/accept-booking/{id}', [BookingController::class, 'AcceptBooking']);
     Route::post('/decline-booking/{id}', [BookingController::class, 'DeclineBooking']);
     Route::post('/attempt-payment/{id}', [BookingController::class, 'AttemptPayment']);
+    Route::post('/get-booking-count/{id}', [BookingController::class, 'GetBookingCount']);
     Route::post('/update-permissions/{id}', [AdminsController::class, 'UpdatePermissions']);
     Route::delete('/delete-user/{id}', [AuthController::class, 'DeleteUser']);
     Route::put('/reset-admin-password/{id}', [AdminsController::class, 'ChangeAdminPassword']);

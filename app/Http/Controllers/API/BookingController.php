@@ -25,24 +25,38 @@ class BookingController extends Controller
     {
         //
     }
-    public function PreBookEvent($id) {
+    public function PreBookEvent(Request $request, $id) {
         $user = auth()->user();
         $event = Event::all()->where('id', $id)->first();
-        $spot_left = $event->attendance_limit - $event->limit_count;
 
-        if($spot_left < 1) {
-            return response()->json('Sorry, there is no spot left', 404);
-        }
         try {
+            $quantity = $request->quantity;
+            if ($event->event_type === 'private') {
+                $price = collect(json_decode($event->price))->first(function ($item) use ($quantity) {
+                    return $item->id === $quantity - 1;
+                });
+                $total_price = $price->price * $quantity;
+            }else {
+                $total_price = $event->price * $quantity;
+            }
+
             $receipt_no = rand(1111111111,9999999999);
             $booking = new Booking();
             $booking->user_id = $user->id;
             $booking->event_id = $event->id;
             $booking->guide_id = $event->user_id;
             $booking->event_name = $event->event_name;
-            $booking->total_price = $event->price;
+            $booking->event_type = $event->event_type;
+            $booking->total_price = $total_price;
             $booking->receipt_no = $receipt_no;
+            $booking->date_selected = $request->date;
+            $booking->quantity = $request->quantity;
+            $booking->attendees = json_encode($request->attendees);
             $booking->save();
+            if (!$event->repeat_at) {
+                $event->limit_count = DB::raw('limit_count + '.$quantity);
+                $event->update();
+            }
             $bookings = DB::table('bookings')
                 ->join('events', 'bookings.event_id', '=', 'events.id')
                 ->where('bookings.user_id', $user->id)
@@ -55,18 +69,23 @@ class BookingController extends Controller
             $data->email = $email;
             $data->frontend_url = config('hosts.fe');
             $data->s3bucket = config('hosts.s3');
-            Mail::to($email)->send(new EventBookingRequest($data));
-            return response()->json([
-                'message' => 'Your request has been placed. We will reach out to you soon.',
-                'bookings' => $bookings
-            ], 200);
-
         } catch (\Throwable $th) {
             return response()->json([
                 'message' => 'An error has occured'
             ], 500);
         }
-
+        try {
+            Mail::to($email)->send(new EventBookingRequest($data));
+        } catch (\Throwable $th) {
+            return response()->json([
+                'message' => 'Your request has been placed. We will reach out to you soon.',
+                'bookings' => $bookings
+            ], 200);
+        }
+        return response()->json([
+            'message' => 'Your request has been placed. We will reach out to you soon.',
+            'bookings' => $bookings
+        ], 200);
     }
     public function AcceptBooking($id) {
         try {
@@ -78,16 +97,23 @@ class BookingController extends Controller
             $data->email = $email;
             $data->frontend_url = config('hosts.fe');
             $data->s3bucket = config('hosts.s3');
-            Mail::to($email)->send(new BookingAccepted($data));
-            return response()->json([
-                'booking' => $booking,
-                'message' => 'Booking accepted',
-            ], 200);
         } catch (\Throwable $th) {
             return response()->json([
                 'message' => 'An error has occured'
             ], 500);
         }
+        try {
+            Mail::to($email)->send(new BookingAccepted($data));
+        } catch (\Throwable $th) {
+            return response()->json([
+                'booking' => $booking,
+                'message' => 'Booking accepted',
+            ], 200);
+        }
+        return response()->json([
+            'booking' => $booking,
+            'message' => 'Booking accepted',
+        ], 200);
 
     }
     public function DeclineBooking($id) {
@@ -95,48 +121,67 @@ class BookingController extends Controller
             $booking = Booking::findOrFail($id);
             $booking->guide_delete = true;
             $booking->update();
+            $event = Event::where('id', $booking->event_id)->first();
+            if (!$event->repeat_at) {
+                $event->limit_count = DB::raw('limit_count - '.$booking->quantity);
+                $event->update();
+            }
             $email = User::where('id', $booking->user_id)->first()->email;
             $data = new Email();
             $data->email = $email;
             $data->frontend_url = config('hosts.fe');
             $data->s3bucket = config('hosts.s3');
-            Mail::to($email)->send(new BookingDeclined($data));
-            return response()->json([
-                'booking' => $booking,
-                'message' => 'Booking is declined',
-            ], 200);
         } catch (\Throwable $th) {
             return response()->json([
                 'message' => 'An error has occured'
             ], 500);
         }
+        try {
+            Mail::to($email)->send(new BookingDeclined($data));
+        } catch (\Throwable $th) {
+            return response()->json([
+                'booking' => $booking,
+                'message' => 'Booking is declined',
+            ], 200);
+        }
+        return response()->json([
+            'booking' => $booking,
+            'message' => 'Booking is declined',
+        ], 200);
     }
     public function AttemptPayment(Request $request, $id) {
-        $event = Event::where('id', $request->id)->first();
+
+        $event = Event::where('id', $request->event_id)->first();
+        $booking = Booking::where('id', $id)->first();
+
         $name = 'Payment for the event: '.$event->event_name;
         $guide = User::where('id', $event->user_id)->first();
         $connected_account_id = $guide->stripe_account_id;
 
-        // $spot_left = $event->attendance_limit - $event->limit_count;
-
-        // if($spot_left < 1) {
-        //     return response()->json('Sorry, there is no spot left', 404);
-        // }
         // Calculate application fee
-        $applicationFee = $event->price * 0.1; // For example, 10% fee
+        $price = $event->price;
+
+        $quantity = $booking->quantity;
+        if ($event->event_type === 'private') {
+            $priceObj = collect(json_decode($event->price))->first(function ($item) use ($quantity) {
+                return $item->id === $quantity - 1;
+            });
+            $price = $priceObj->price;
+        }
+        $applicationFee = $price * $quantity * 0.1; // For example, 10% fee
 
         try {
             \Stripe\Stripe::setApiKey(config('stripe.sk'));
             $session = \Stripe\Checkout\Session::create([
                 'line_items' => [[
                 'price_data' => [
-                    'currency' => 'usd',
+                    'currency' => 'cad',
                     'product_data' => [
                     'name' => $name,
                     ],
-                    'unit_amount' => $event->price * 100,
+                    'unit_amount' => $price * 100,
                 ],
-                'quantity' => 1,
+                'quantity' => $quantity,
                 ]],
                 'mode' => 'payment',
                 'payment_intent_data' => [
@@ -149,13 +194,11 @@ class BookingController extends Controller
                 'success_url' => config('hosts.fe').'/booking/success/{CHECKOUT_SESSION_ID}',
                 'cancel_url' => config('hosts.fe').'/booking/canceled/{CHECKOUT_SESSION_ID}',
             ]);
-
-        // return response()->json($session, 200);
-
-            
-            $booking = Booking::where('receipt_no', $id)->first();
             $booking->payment_session_id = $session->id;
+            $booking->waiver = json_encode($request->sign);
+            $booking->relist = $request->relist;
             $booking->update();
+
             return response()->json($session->url, 200);
         } catch (\Throwable $th) {
             return response()->json([
@@ -188,16 +231,20 @@ class BookingController extends Controller
             ], 500);
         }
     }
-    public function FinishBooking($booking)
+    private function FinishBooking($booking)
     {
         $booking->paid = true;
+        if ($booking->event_type === 'private') {
+            if ($booking->relist === false) {
+                $booking->close_booking = true;
+            }
+        }
         $booking->update();
         // $event = Event::where('id', $booking->event_id)->first();
         // $event->limit_count = DB::raw('limit_count + 1');
         // $event->update();
 
         //send email
-        
     }
     public function CancelBooking(Request $request)
     {
@@ -210,6 +257,7 @@ class BookingController extends Controller
                 ->where('paid', false)->first();
                 if($booking) {
                     $booking->payment_session_id = null;
+                    $booking->relist = true;
                     $booking->update();
                 }
             }
@@ -310,5 +358,22 @@ class BookingController extends Controller
         }
 
         return response('', 200);
+    }
+    public function GetBookingCount(Request $request, $id) {
+        
+        $bookings = Booking::where('event_id', $id)
+        ->where('date_selected', \Carbon\Carbon::parse($request->date)->toDateString())
+        ->where('guide_delete', false)
+        ->get();
+        //check if booking is open
+        $isClosed = collect($bookings)->some(function ($item) {
+            return $item->close_booking == true;
+        });
+        if ($isClosed) {
+            $count = Event::where('id', $id)->first()->attendance_limit;
+        } else {
+            $count = collect($bookings)->pluck('quantity')->sum();
+        }
+        return response()->json($count, 200);
     }
 }

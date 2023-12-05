@@ -3,8 +3,10 @@
 namespace App\Http\Controllers\API;
 
 use App\Http\Controllers\Controller;
+use App\Models\Booking;
 use App\Models\Event;
 use App\Models\User;
+use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
@@ -22,30 +24,43 @@ class EventController extends Controller
     public function store(Request $request)
     {
         try {
+            $price = $request->price;
+            $end_date = $request->end_date;
             $repeat_at = null;
             if ($request->repeat) {
                 $repeat_at = $request->repeat_at;
+            }else {
+                $end_date = $request->start_date;
             }
+            if ($request->event_type === 'private') {
+                $price = $request->price_range;
+            }
+
             $user = auth()->user();
             $event = new Event();
             $event->user_id = $user->id;
+            $event->event_type = $request->event_type;
             $event->event_name = $request->event_name;
             $event->start_date = $request->start_date;
-            $event->end_date = $request->end_date;
-            $event->start_time = $request->start_time;
-            $event->price = $request->price;
+            $event->end_date = $end_date;
             $event->latitude = $request->latitude;
             $event->longitude = $request->longitude;
             $event->address = $request->address;
             $event->category = $request->category;
             $event->attendance_limit = $request->attendance_limit;
-            $event->gears = json_encode($request->gears);
+            $event->event_duration = $request->event_duration;
+            $event->price = json_encode($price);
+            $event->event_terms = json_encode($request->event_terms);
+            $event->climber_gears = json_encode($request->climber_gears);
+            $event->guide_gears = json_encode($request->guide_gears);
             $event->faqs = json_encode($request->faqs);
+            $event->experience_required = json_encode($request->experience_required);
             $event->itinerary = $request->itinerary;
             $event->event_description = $request->event_description;
             $event->color_class = $request->color;
             $event->repeat_at = $repeat_at;
             $gallery = [];
+
             foreach ($request->gallery as $value) {
                 $split = explode("/", $value);
                 $image = end($split);
@@ -58,7 +73,7 @@ class EventController extends Controller
             $event->save();
             Storage::disk('s3')->deleteDirectory('temp_'.$user->id);
             return response()->json([
-                'data' => $event,
+                'event' => $event,
                 'message' => 'Event has been created'
             ], 200);
 
@@ -116,27 +131,44 @@ class EventController extends Controller
     {
         try {
             $user = auth()->user();
+            
+            $climber_gears = [];
+            $guide_gears = [];
+            $price = $request->price;
+            $end_date = $request->end_date;
             $repeat_at = null;
+            if($request->climber_gears != [null]) {
+                $climber_gears = $request->climber_gears;
+            }
+            if($request->guide_gears != [null]) {
+                $guide_gears = $request->guide_gears;
+            }
             if ($request->repeat) {
                 $repeat_at = $request->repeat_at;
+            }else {
+                $end_date = $request->start_date;
             }
-            $gears = [];
-            if($request->gears != [null]) {
-                $gears = json_encode($request->gears);
+            if ($request->event_type === 'private') {
+                $price = $request->price_range;
             }
             $event = Event::findOrFail($id);
             $event->event_name = $request->event_name;
+            $event->event_type = $request->event_type;
             $event->start_date = $request->start_date;
-            $event->end_date = $request->end_date;
-            $event->start_time = $request->start_time;
+            $event->end_date = $end_date;
             $event->price = $request->price;
             $event->latitude = $request->latitude;
             $event->longitude = $request->longitude;
             $event->address = $request->address;
             $event->category = $request->category;
             $event->attendance_limit = $request->attendance_limit;
-            $event->gears = $gears;
+            $event->event_duration = $request->event_duration;
+            $event->price = json_encode($price);
+            $event->event_terms = json_encode($request->event_terms);
+            $event->climber_gears = json_encode($climber_gears);
+            $event->guide_gears = json_encode($guide_gears);
             $event->faqs = json_encode($request->faqs);
+            $event->experience_required = json_encode($request->experience_required);
             $event->itinerary = $request->itinerary;
             $event->event_description = $request->event_description;
             $event->repeat_at = $repeat_at;
@@ -168,6 +200,15 @@ class EventController extends Controller
             ], 500);
         }
     }
+    // public function GetStatistics() {
+    //     // $stats_start = Carbon::today()->subDays(7)->toDateTimeString();
+    //     // $stats_end = Carbon::today()->addDays(1)->toDateTimeString();
+    //     $booking = Booking::all();
+    //     $guides = User::where('role', 'guide')
+    //     return response()->json([
+
+    //     ], 200)
+    // }
     public function destroy(string $id)
     {
         try {
