@@ -8,9 +8,13 @@ use App\Models\Email;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Mail;
+use App\Traits\ColorTrait;
+
 
 class AdminsController extends Controller
 {
+    use ColorTrait;
+
     public function __construct()
     {
         $this->middleware('auth:api');
@@ -27,6 +31,7 @@ class AdminsController extends Controller
             'password' => 'required|min:8',
         ]);
         try {
+            $randomColor = $this->getRandomColor();
             $email = $request->email;
             $name = $request->name;
             $newuser = new User();
@@ -34,6 +39,7 @@ class AdminsController extends Controller
             $newuser->email = $email;
             $newuser->password = bcrypt($request->password);
             $newuser->role = 'admin';
+            $newuser->color = $randomColor;
             $newuser->save();
             if($request->sendEmail) {
                 //Send email
@@ -43,18 +49,27 @@ class AdminsController extends Controller
                     $data->password = $request->password;
                     $data->frontend_url = config('hosts.fe');
                     $data->s3bucket = config('hosts.s3');
-                    Mail::to($email)->send(new NewAdminUser($data));
                 }
-            return response()->json([
-                'user' => $newuser,
-                'message' => 'User is created'
-            ], 200);
             
         } catch (\Throwable $th) {
             return response()->json([
                 'message' => 'An error has occured'
             ], 500);
         }
+        try {
+            if($request->sendEmail) {
+                Mail::to($email)->send(new NewAdminUser($data));
+            }
+        } catch (\Throwable $th) {
+            return response()->json([
+                'user' => $newuser,
+                'message' => 'User is created'
+            ], 200);
+        }
+        return response()->json([
+            'user' => $newuser,
+            'message' => 'User is created'
+        ], 200);
     }
     public function UpdatePermissions(Request $request, $id) {
         try {

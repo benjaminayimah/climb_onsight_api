@@ -71,7 +71,7 @@ class UserController extends Controller
                 //     )
                 // ->orderBy('id', 'DESC')
                 ->get();
-            $events = Event::where('events.user_id', $user->id)->get();
+            $events = Event::where('user_id', $user->id)->get();
             if($user->charges_enabled && $user->details_submitted && $user->payouts_enabled) {
                 $stripe_id = $user->stripe_account_id;
                 $stripe = new \Stripe\StripeClient(config('stripe.sk'));
@@ -145,19 +145,28 @@ class UserController extends Controller
     public function update(Request $request, string $id)
     {
         try {
-            $new_skills = array();
-            if($request['new_skills'] != [""]) {
-                $new_skills = $request['new_skills'];
+            $skills = $request->skills;
+            $type_yours = $request->type_yours;
+
+            if ($type_yours && $type_yours !== '' ) {
+                // Split the comma-separated string into an array
+                $typeYours = array_map('trim', explode(',', $type_yours));
+
+                // Merge the existing skills array and the newSkills array
+                $combinedSkills = array_merge($skills, $typeYours);
+                // remove duplicates from the combined array
+                $skills = array_unique($combinedSkills);
             }
+
             $split = explode("/", $request['tempImage']);
             $profile_picture = end($split);
             $user = User::findOrFail($id);
             $user->dob = $request['dob'];
             $user->gender = $request['gender'];
             $user->bio = $request['bio'];
-            $user->activities = $request['activities'];
-            $user->skills = $request['skills'];
-            $user->new_skills = $new_skills;
+            $user->activities = json_encode($request['activities']);
+            $user->skills = json_encode($skills);
+            $user->new_skills = json_encode($request['new_skills']);
             if($request['tempImage'] !== null) {
                 if (Storage::disk('s3')->exists($request['tempImage'])) {
                     Storage::disk('s3')->move($request['tempImage'], 'images/'.$profile_picture);

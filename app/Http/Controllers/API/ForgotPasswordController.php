@@ -55,7 +55,7 @@ class ForgotPasswordController extends Controller
         ]);
         return $token;
     }
-    public function sendMail($token, $email)
+    private function sendMail($token, $email)
     {
         $data = new Email();
         $data->reset_url = 'reset-password/'.$token;

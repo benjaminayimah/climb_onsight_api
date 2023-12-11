@@ -3,7 +3,9 @@
 namespace App\Http\Controllers\API;
 
 use App\Http\Controllers\Controller;
+use App\Models\Booking;
 use App\Models\Error;
+use App\Models\Event;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
@@ -143,20 +145,47 @@ class AuthController extends Controller
         try {
             $user = User::findOrFail($id);
             $image = $user->profile_picture;
-            if($user->profile_picture) {
+            $terms = json_decode($user->guide_terms);
+            $certificate = json_decode($user->guide_certificate);
+            $insurance = json_decode($user->guide_insurance);
+
+            if($image) {
                 $this->deleteImage($image);
             }
-            if (isset($user->guide_terms)) {
-                $this->deleteImage(json_decode($user->guide_terms)->url);
-            }
-            if(isset($user->guide_certificate)) {
-                foreach (json_decode($user->guide_certificate) as $key) {
-                    $this->deleteImage($key->url);
+            if($user->role === 'guide') {
+                if (isset($terms)) {
+                    $this->deleteImage($terms->url);
                 }
+                if(!empty($certificate)) {
+                    foreach ($certificate as $key) {
+                        $this->deleteImage($key->url);
+                    }
+                }
+                if(!empty($insurance)) {
+                    foreach ($insurance as $key) {
+                        $this->deleteImage($key->url);
+                    }
+                }
+                $events = Event::where('user_id', $user->id)->get();
+                $bookings = Booking::where('guide_id', $user->id)->get();
+                if(!empty($events)) {
+                    foreach ($events as $value) {
+                        $value->delete();
+                    }
+                }
+                if(!empty($bookings)) {
+                    foreach ($bookings as $value) {
+                        $value->delete();
+                    }
+                }
+
             }
-            if(isset($user->guide_insurance)) {
-                foreach (json_decode($user->guide_insurance) as $key) {
-                    $this->deleteImage($key->url);
+            elseif($user->role === 'climber') {
+                $bookings = Booking::where('user_id', $user->id)->get();
+                if(!empty($bookings)) {
+                    foreach ($bookings as $value) {
+                        $value->delete();
+                    }
                 }
             }
             $user->delete();

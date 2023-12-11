@@ -14,9 +14,11 @@ use Illuminate\Support\Facades\Crypt;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Mail;
 use Tymon\JWTAuth\Facades\JWTAuth;
+use App\Traits\ColorTrait;
 
 class SignUpController extends Controller
 {
+    use ColorTrait;
     
     public function registerClimber(Request $request)
     {
@@ -27,6 +29,7 @@ class SignUpController extends Controller
             'password' => 'required|min:8',
         ]);
         try {
+            $randomColor = $this->getRandomColor();
             $email = $request->email;
             $name = $request->name;
             $newuser = new User();
@@ -34,6 +37,7 @@ class SignUpController extends Controller
             $newuser->email = $email;
             $newuser->password = bcrypt($request->password);
             $newuser->phone_number = $request->phone_number;
+            $newuser->color = $randomColor;
             $newuser->save();
             if( !$token = JWTAuth::fromUser($newuser)) {
                 return response()->json('Invalid credentials', 401);
@@ -57,6 +61,7 @@ class SignUpController extends Controller
     public function registerGuide(Request $request)
     {
         try {
+            $randomColor = $this->getRandomColor();
             $email = $request['email'];
             $name = $request['name'];
             $newGuide = new User();
@@ -68,11 +73,11 @@ class SignUpController extends Controller
             $newGuide->phone_number = $request['phone_number'];
             $newGuide->guide_insurance = json_encode($request['guide_insurance']);
             $newGuide->guide_certificate = json_encode($request['guide_certificate']);
-            $newGuide->guide_terms = json_encode($request['guide_terms']);
             $newGuide->guide_awards = json_encode($request['guide_awards']);
             $newGuide->customer_reviews = $request['customer_reviews'];
             $newGuide->guide_experience = json_encode($request['guide_experience']);
             $newGuide->referees = json_encode($request['referees']);
+            $newGuide->color = $randomColor;
             $newGuide->save();
 
         } catch (\Throwable $th) {
@@ -134,17 +139,22 @@ class SignUpController extends Controller
             $data->token = Crypt::encryptString($email);
             $data->frontend_url = config('hosts.fe');
             $data->s3bucket = config('hosts.s3');
-            // Mail::to($email)->send(new GuideApproved($data));
-
-            return response()->json([
-                'message' => 'Guide has been accepted',
-            ], 200);
 
         } catch (\Throwable $th) {
             return response()->json([
                 'message' => 'An error has occured'
             ], 500);
         }
+        try {
+            Mail::to($email)->send(new GuideApproved($data));
+        } catch (\Throwable $th) {
+            return response()->json([
+                'message' => 'Guide has been accepted',
+            ], 200);
+        }
+        return response()->json([
+            'message' => 'Guide has been accepted',
+        ], 200);
     }
     public function DeclineGuide($id) {
         if (! $user = JWTAuth::parseToken()->authenticate()) {

@@ -22,6 +22,7 @@ return new class extends Migration
             $table->string('country')->nullable();
             $table->enum('role', ['super_admin', 'admin', 'guide', 'climber'])->default('climber');
             $table->string('profile_picture')->nullable();
+            $table->string('color')->nullable();
 
             //climber specific feilds
             $table->date('dob')->nullable();

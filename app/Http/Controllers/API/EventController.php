@@ -6,7 +6,6 @@ use App\Http\Controllers\Controller;
 use App\Models\Booking;
 use App\Models\Event;
 use App\Models\User;
-use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
@@ -183,6 +182,12 @@ class EventController extends Controller
             }
             $event->gallery = json_encode($gallery);
             $event->update();
+            $bookings = Booking::where('event_id', $event->id)->get();
+            foreach ($bookings as $item) {
+                $item->event_name = $event->event_name;
+                $item->event_type = $event->event_type;
+                $item->update();
+            }
             Storage::disk('s3')->deleteDirectory('temp_'.$user->id);
             $event = DB::table('events')
                 ->join('users', 'events.user_id', '=', 'users.id')
@@ -220,6 +225,12 @@ class EventController extends Controller
                     if (Storage::disk('s3')->exists('images/'.$image)) {
                         Storage::disk('s3')->delete('images/'.$image);
                     }
+                }
+            }
+            $bookings = Booking::where('event_id', $id)->get();
+            if(!empty($bookings)) {
+                foreach ($bookings as $value) {
+                    $value->delete();
                 }
             }
             $event->delete();

@@ -317,17 +317,17 @@ class BookingController extends Controller
         $event = null;
 
         try {
-        $event = \Stripe\Webhook::constructEvent(
-            $payload, $sig_header, $endpoint_secret
-        );
+            $event = \Stripe\Webhook::constructEvent(
+                $payload, $sig_header, $endpoint_secret
+            );
         } catch(\UnexpectedValueException $e) {
-        // Invalid payload
-        http_response_code(400);
-        exit();
+            // Invalid payload
+            http_response_code(400);
+            exit();
         } catch(\Stripe\Exception\SignatureVerificationException $e) {
-        // Invalid signature
-        http_response_code(400);
-        exit();
+            // Invalid signature
+            http_response_code(400);
+            exit();
         }
 
         // Handle the event
@@ -339,18 +339,21 @@ class BookingController extends Controller
             $user->details_submitted = $account->details_submitted;
             $user->payouts_enabled = $account->payouts_enabled;
             $user->update();
+            break;
         case 'checkout.session.completed':
             $session = $event->data->object;
             $booking = Booking::where('payment_session_id', $session->id)->first();
             if($booking && !$booking->paid) {
                 $this->FinishBooking($booking);
             }
+            break;
         case 'checkout.session.async_payment_failed': //or expired
             $session = $event->data->object;
             $booking = Booking::where('payment_session_id', $session->id)
                 ->where('paid', false)->first();
                 if($booking) {
                     $booking->payment_session_id = null;
+                    $booking->relist = true;
                     $booking->update();
                 }
         default:
